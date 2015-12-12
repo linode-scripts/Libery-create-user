@@ -1,0 +1,52 @@
+#!/bin/bash
+#
+# User related utilities
+#
+# https://github.com/linode-scripts
+#
+# Copyright (c) 2015 Jens Tirsvad Nielsen
+# <UDF name="user_name" label="Unprivileged user account name" example="This is the account that you will be using to log in." />
+# <udf name="user_password" label="Unprivileged user password">
+# <udf name="user_sshkey" default="" label="Public Key for User" example="Recommended method of authentication. It is more secure than password log in." />
+
+USER_GROUPS=sudo
+
+function lower {
+    echo $1 | tr '[:upper:]' '[:lower:]'
+}
+
+function system_add_user {
+    # system_add_user (USERNAME, PASSWORD, GROUPS, SHELL=/bin/bash)
+    USERNAME=`lower $1`
+    echo -e "\nAdding user $USERNAME"
+    PASSWORD=$2
+    GROUPS=$3
+    SHELL=$4
+    if [ -z "$4" ]; then
+        SHELL="/bin/bash"
+    fi
+    useradd --create-home --shell "$SHELL" --user-group --groups "$GROUPS" "$USERNAME"
+    echo "$USERNAME:$PASSWORD" | chpasswd
+}
+
+function system_get_user_home {
+    # system_get_user_home(username)
+    cat /etc/passwd | grep "^$1:" | cut --delimiter=":" -f6
+}
+
+function system_user_add_ssh_key {
+    # system_user_add_ssh_key(username, ssh_key)
+    USERNAME=`lower $1`
+    USER_HOME=`system_get_user_home "$USERNAME"`
+    sudo -u "$USERNAME" mkdir "$USER_HOME/.ssh"
+    sudo -u "$USERNAME" touch "$USER_HOME/.ssh/authorized_keys"
+    sudo -u "$USERNAME" echo "$2" >> "$USER_HOME/.ssh/authorized_keys"
+    chmod 0600 "$USER_HOME/.ssh/authorized_keys"
+}
+
+# Create user account
+system_add_user "$USER_NAME" "$USER_PASSWORD" "$USER_GROUPS" "$USER_SHELL"
+
+if [ "$USER_SSHKEY" ]; then
+    system_user_add_ssh_key "$USER_NAME" "$USER_SSHKEY"
+fi
