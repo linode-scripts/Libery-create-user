@@ -44,9 +44,29 @@ function system_user_add_ssh_key {
     chmod 0600 "$USER_HOME/.ssh/authorized_keys"
 }
 
+function system_sshd_edit_bool {
+    # system_sshd_edit_bool (param_name, "Yes"|"No")
+    VALUE=`lower $2`
+    if [ "$VALUE" == "yes" ] || [ "$VALUE" == "no" ]; then
+        sed -i "s/^#*\($1\).*/\1 $VALUE/" /etc/ssh/sshd_config
+    fi
+}
+
+function system_sshd_permitrootlogin {
+    system_sshd_edit_bool "PermitRootLogin" "$1"
+}
+
+function system_sshd_passwordauthentication {
+    system_sshd_edit_bool "PasswordAuthentication" "$1"
+}
+
 # Create user account
 system_add_user "$USER_NAME" "$USER_PASSWORD" "$USER_GROUPS" "$USER_SHELL"
 
 if [ "$USER_SSHKEY" ]; then
     system_user_add_ssh_key "$USER_NAME" "$USER_SSHKEY"
 fi
+
+# Configure sshd
+system_sshd_permitrootlogin "$SSHD_PERMITROOTLOGIN"
+system_sshd_passwordauthentication "$SSHD_PASSWORDAUTH"
