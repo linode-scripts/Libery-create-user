@@ -71,6 +71,8 @@ if [ "$USER_SSHKEY" ]; then
     system_user_add_ssh_key "$USER_NAME" "$USER_SSHKEY"
 fi
 
+system_security_fail2ban
+
 # Configure sshd
 system_sshd_permitrootlogin "$SSHD_PERMITROOTLOGIN"
 system_sshd_passwordauthentication "$SSHD_PASSWORDAUTH"
