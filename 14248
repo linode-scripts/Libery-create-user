@@ -60,6 +60,10 @@ function system_sshd_passwordauthentication {
     system_sshd_edit_bool "PasswordAuthentication" "$1"
 }
 
+function system_security_fail2ban {
+    aptitude -y install fail2ban
+}
+
 # Create user account
 system_add_user "$USER_NAME" "$USER_PASSWORD" "$USER_GROUPS" "$USER_SHELL"
 
